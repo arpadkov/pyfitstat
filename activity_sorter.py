@@ -8,13 +8,6 @@ class ActivitySorter:
 
         self.activities = activities
 
-        # self.view_type = view_type
-        # self.act_type = act_type
-        # self.act_info = act_info
-        #
-        # self.year = year
-        # self.month = month
-
     def get_activities(self, view_type, act_type, year=None, month=None):
         if view_type == 'All':
             return self.get_all(act_type)
@@ -155,6 +148,12 @@ class PlotCreator:
 
     def act_years(self):
         return [i for i in range(self.sorter.activities[0].year, self.sorter.activities[-1].year + 1)]
+
+    def last_month(self):
+        return self.sorter.activities[-1].month
+
+    def first_month(self):
+        return self.sorter.activities[0].month
 
     @staticmethod
     def act_months():

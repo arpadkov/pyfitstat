@@ -14,17 +14,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, activities, parent=None):
         super(MainWindow, self).__init__(parent)
 
-        # self.activities = activities
-        # self.current_activities = self.activities
-        #
-        # self.current_view = 'All'
-        # self.current_year = max(self.years)
-        # self.current_month = 3
-        # self.current_type = 'Running'
-        # self.current_info = 'distance'
-
         self.activities = activities
-        # self.current_activities = []
 
         self.view_types = ['All', 'Year', 'Month']
         self.view_type = self.view_types[0]
@@ -45,8 +35,16 @@ class MainWindow(QtWidgets.QMainWindow):
         layout = QtWidgets.QVBoxLayout()
 
         self.plot_widget = PlotWidget(parent=self)
+
         self.top_row = TopRow(parent=self)
+        self.top_row.data_changed.connect(self.plot)
+        self.top_row.act_type_change.connect(self.act_type_changed)
+        self.top_row.view_type_change.connect(self.view_type_changed)
+        self.top_row.calender_left.connect(self.calender_left)
+        self.top_row.calender_right.connect(self.calender_right)
+
         self.bottom_row = BottomRow(parent=self)
+        self.top_row.data_changed.connect(self.plot)
 
         layout.addWidget(self.top_row)
         layout.addWidget(self.plot_widget)
@@ -71,20 +69,17 @@ class MainWindow(QtWidgets.QMainWindow):
     def keyPressEvent(self, event) -> None:
         print(event.key())
 
-    def view_type_changed(self):
+    def view_type_changed(self, view_type):
 
-        self.view_type = self.top_row.cb_calender.currentText()
+        self.view_type = view_type
         if self.view_type == 'All':
             self.year = datetime.date.today().year
             self.month = datetime.date.today().month
-        self.plot()
 
-    def act_type_changed(self):
+    def act_type_changed(self, act_type):
+        self.act_type = act_type
 
-        self.act_type = self.top_row.cb_activity_type.currentText()
-        self.plot()
-
-    def right_click(self):
+    def calender_right(self):
 
         if self.view_type == 'All':
             return
@@ -106,9 +101,7 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 self.month += 1
 
-        self.plot()
-
-    def left_click(self):
+    def calender_left(self):
 
         if self.view_type == 'All':
             return
@@ -131,6 +124,30 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.month -= 1
 
         self.plot()
+
+    def year_step(self, step: int):
+
+        date = datetime.date(self.year+step, self.month, 1)
+        max_date = datetime.date(max(self.plotter.act_years()), self.plotter.last_month(), 1)
+        min_date = datetime.date(min(self.plotter.act_years()), self.plotter.first_month(), 1)
+
+        if date > max_date or date < min_date:
+            return
+        else:
+            self.year += step
+
+    def month_step(self, step: int):
+
+        date = datetime.date(self.year, self.month + step, 1)
+        max_date = datetime.date(max(self.plotter.act_years()), self.plotter.last_month(), 1)
+        min_date = datetime.date(min(self.plotter.act_years()), self.plotter.first_month(), 1)
+
+        if self.month == (12 or 1):
+            self.year_step(step)
+
+
+
+
 
     def artist_clicked(self, event):
 
@@ -216,6 +233,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def show_elevation_loss(self):
         self.act_info = 'elevation_loss'
         self.plot()
+
 
 
 

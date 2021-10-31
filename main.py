@@ -19,7 +19,7 @@ import sys
 import datetime
 import logging
 
-logging.basicConfig(level='INFO')
+logging.basicConfig(level='ERROR')
 
 
 
@@ -94,9 +94,18 @@ class FitnessApp:
             self.save_user_data()
 
     def save_user_data(self):
-        # TODO implement saving user data
-        pass
 
+        if os.path.isfile(os.path.join(os.getenv('APPDATA'), 'pyfitstat', 'users.json')):
+            with open(os.path.join(os.getenv('APPDATA'), 'pyfitstat', 'users.json')) as file:
+                json_data = json.load(file)
+        else:
+            json_data = {}
+
+        json_data[self.username] = self.password
+        json_data["default"] = self.username
+
+        with open(os.path.join(os.getenv('APPDATA'), 'pyfitstat', 'users.json'), 'w') as file:
+            json.dump(json_data, file, indent=4)
 
     def open_window(self):
 

@@ -1,7 +1,10 @@
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import pyqtSignal
 
 
 class BottomRow(QtWidgets.QWidget):
+
+    data_changed = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__()
