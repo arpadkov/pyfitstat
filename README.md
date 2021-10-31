@@ -1,2 +1,3 @@
 # pyfitstat
-GUI application to view statistics of fitness activities
+GUI application to view statistics of fitness activities \
+in development
