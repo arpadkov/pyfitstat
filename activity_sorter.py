@@ -53,7 +53,7 @@ class PlotCreator:
 
         self.sorter = sorter
 
-        self.view_type = view_type
+        self.view_type = view_type.name
         self.act_type = act_type
         self.act_info = act_info
 
@@ -150,10 +150,10 @@ class PlotCreator:
         return [i for i in range(self.sorter.activities[0].year, self.sorter.activities[-1].year + 1)]
 
     def last_month(self):
-        return self.sorter.activities[-1].month
+        return self.sorter.activities[-1].date.month
 
     def first_month(self):
-        return self.sorter.activities[0].month
+        return self.sorter.activities[0].date.month
 
     @staticmethod
     def act_months():

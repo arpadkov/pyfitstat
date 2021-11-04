@@ -1,12 +1,14 @@
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 
+from pyfitstat.model.model import ViewType
 from activity_sorter import ActivitySorter, PlotCreator
 from plot_widget import PlotWidget
 from top_row import TopRow
 from bottom_row import BottomRow
+
 import datetime
-from infobox_widget import InfoWidget
+import monthdelta
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -16,8 +18,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.activities = activities
 
-        self.view_types = ['All', 'Year', 'Month']
-        self.view_type = self.view_types[0]
+        self.view_type = ViewType.All
 
         self.act_types = ['Running', 'Cycling', 'Hiking']
         self.act_type = self.act_types[0]
@@ -40,11 +41,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.top_row.data_changed.connect(self.plot)
         self.top_row.act_type_change.connect(self.act_type_changed)
         self.top_row.view_type_change.connect(self.view_type_changed)
-        self.top_row.calender_left.connect(self.calender_left)
-        self.top_row.calender_right.connect(self.calender_right)
+        # self.top_row.calender_left.connect(self.calender_left)
+        # self.top_row.calender_right.connect(self.calender_right)
+        self.top_row.calender_change.connect(self.calender_change)
 
         self.bottom_row = BottomRow(parent=self)
-        self.top_row.data_changed.connect(self.plot)
+        # self.top_row.data_changed.connect(self.plot)
 
         layout.addWidget(self.top_row)
         layout.addWidget(self.plot_widget)
@@ -72,101 +74,59 @@ class MainWindow(QtWidgets.QMainWindow):
     def view_type_changed(self, view_type):
 
         self.view_type = view_type
-        if self.view_type == 'All':
+        if self.view_type is ViewType.All:
             self.year = datetime.date.today().year
             self.month = datetime.date.today().month
 
     def act_type_changed(self, act_type):
         self.act_type = act_type
 
-    def calender_right(self):
+    def calender_change(self, step):
 
-        if self.view_type == 'All':
-            return
-
-        if self.view_type == 'Year':
-
-            if self.year == max(self.plotter.act_years()):
-                pass
-            else:
-                self.year += 1
-
-        if self.view_type == 'Month':
-
-            if self.month == 12 and self.year == max(self.plotter.act_years()):
-                pass
-            elif self.month == 12:
-                self.month = 1
-                self.year += 1
-            else:
-                self.month += 1
-
-    def calender_left(self):
-
-        if self.view_type == 'All':
-            return
-
-        if self.view_type == 'Year':
-
-            if self.year == min(self.plotter.act_years()):
-                pass
-            else:
-                self.year -= 1
-
-        if self.view_type == 'Month':
-
-            if self.month == 1 and self.year == min(self.plotter.act_years()):
-                pass
-            elif self.month == 1:
-                self.month = 12
-                self.year -= 1
-            else:
-                self.month -= 1
-
-        self.plot()
+        if self.view_type is ViewType.Year:
+            self.year_step(step)
+        elif self.view_type is ViewType.Month:
+            self.month_step(step)
 
     def year_step(self, step: int):
 
-        date = datetime.date(self.year+step, self.month, 1)
-        max_date = datetime.date(max(self.plotter.act_years()), self.plotter.last_month(), 1)
-        min_date = datetime.date(min(self.plotter.act_years()), self.plotter.first_month(), 1)
+        date_min = datetime.date(self.year + step, 1, 5)
+        date_max = datetime.date(self.year + step, 12, 5)
 
-        if date > max_date or date < min_date:
-            return
-        else:
+        if self.date_is_valid(date_min) or self.date_is_valid(date_max):
             self.year += step
 
     def month_step(self, step: int):
 
-        date = datetime.date(self.year, self.month + step, 1)
-        max_date = datetime.date(max(self.plotter.act_years()), self.plotter.last_month(), 1)
+        date = datetime.date(self.year, self.month, 5) + monthdelta.monthdelta(step)
+        if self.date_is_valid(date):
+            self.year = date.year
+            self.month = date.month
+
+    def date_is_valid(self, date: datetime.date):
+
+        max_date = datetime.date(max(self.plotter.act_years()), self.plotter.last_month(), 28)
         min_date = datetime.date(min(self.plotter.act_years()), self.plotter.first_month(), 1)
 
-        if self.month == (12 or 1):
-            self.year_step(step)
-
-
-
-
+        return True if min_date < date < max_date else False
 
     def artist_clicked(self, event):
 
-        actions = {
-            self.view_types[0]: self.year_clicked,
-            self.view_types[1]: self.month_clicked,
-            self.view_types[2]: self.day_clicked,
-        }
-
-        actions[self.view_type](num=event.artist.get_gid())
+        if self.view_type is ViewType.All:
+            self.year_clicked(num=event.artist.get_gid())
+        elif self.view_type is ViewType.Year:
+            self.month_clicked(num=event.artist.get_gid())
+        elif self.view_type is ViewType.Month:
+            self.day_clicked(num=event.artist.get_gid())
 
     def year_clicked(self, num):
         self.year = self.plotter.act_years()[num]
-        self.view_type = 'Year'
+        self.view_type = ViewType.Year
         self.plot()
 
     def month_clicked(self, num):
         self.month = num+1
-        self.view_type = 'Month'
+        self.view_type = ViewType.Month
         self.plot()
 
     def day_clicked(self, num):
