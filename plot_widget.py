@@ -19,8 +19,8 @@ class PlotWidget(QtWidgets.QWidget):
         self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
         self.figure.canvas.mpl_connect('pick_event', self.parent.artist_clicked)
-        self.figure.canvas.mpl_connect('motion_notify_event', self.parent.artist_hover_in)
-        self.figure.canvas.mpl_connect('figure_enter_event', self.parent.show_popup)
+        self.figure.canvas.mpl_connect('motion_notify_event', self.parent.show_popup)
+        # self.figure.canvas.mpl_connect('figure_enter_event', self.parent.show_popup)
         self.figure.canvas.mpl_connect('figure_leave_event', self.parent.mouse_left)
 
         self.setMouseTracking(True)
@@ -42,6 +42,9 @@ class PlotWidget(QtWidgets.QWidget):
         plot_data = self.edit_plot_data(plot_data)
 
         self.figure.clear()
+        self.bars = []
+        self.ax = None
+        self.annotations = []
 
         self.ax = self.figure.add_subplot(111)
 
@@ -49,6 +52,9 @@ class PlotWidget(QtWidgets.QWidget):
 
         for i in range(len(plot_data["values"])):
             self.bars.append(self.ax.bar(plot_data["labels"][i], plot_data["values"][i], gid=i, picker=1, color='royalblue'))
+
+            annot = InfoWidget(label=str(round(plot_data["values"][i], 2)))
+            self.annotations.append(annot)
 
             # self.annotations.append(self.get_annotation(key=i))
 

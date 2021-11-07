@@ -6,6 +6,7 @@ from activity_sorter import ActivitySorter, PlotCreator
 from plot_widget import PlotWidget
 from top_row import TopRow
 from bottom_row import BottomRow
+from infobox_widget import InfoWidget
 
 import datetime
 import monthdelta
@@ -55,6 +56,8 @@ class MainWindow(QtWidgets.QMainWindow):
         window = QtWidgets.QWidget()
         window.setLayout(layout)  # set layout to our central widget
         self.setCentralWidget(window)  # set w as central widget
+
+        self.annot = InfoWidget('TEST')
 
     def _on_data_change(self):
         # self.sorter = ActivitySorter(self.activities, self.view_type, self.act_type, self.act_info, self.year,
@@ -136,11 +139,23 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # print(self.frameGeometry())
         # print(self.plot_widget.frameGeometry().center())
-        pass
-        # self.info_widget = InfoWidget(parent=self)
+
+        # self.info_widget = InfoWidget()
         # self.info_widget.setGeometry(100, 100, 100, 100)
         # self.info_widget.show()
         # print(self.info_widget)
+
+        if event.inaxes == self.plot_widget.ax:
+
+            for bar, annot in zip(self.plot_widget.bars, self.plot_widget.annotations):
+                cont, ind = bar.patches[0].contains(event)
+
+                if cont:
+                    annot.show()
+
+                else:
+                    annot.hide()
+
 
     def artist_hover_in(self, event):
 
@@ -175,8 +190,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # self.info_widget.hide()
 
         for annot in self.plot_widget.annotations:
-            annot.set_visible(False)
-            self.plot_widget.canvas.draw()
+            annot.hide()
+            # self.plot_widget.canvas.draw()
 
     def show_distance(self):
         self.act_info = 'distance'
