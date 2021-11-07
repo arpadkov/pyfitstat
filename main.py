@@ -165,7 +165,7 @@ class FitnessApp:
 
 
 def main():
-    fitness_app = FitnessApp(sync=False)
+    fitness_app = FitnessApp(sync=True)
     fitness_app.open_window()
 
 
