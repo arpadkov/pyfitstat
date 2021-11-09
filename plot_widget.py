@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets, QtCore
-from infobox_widget import InfoWidget
+from pyfitstat.gui.GUIInfoboxWidget import InfoWidget
 
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -19,7 +19,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
         self.figure.canvas.mpl_connect('pick_event', self.parent.artist_clicked)
-        self.figure.canvas.mpl_connect('motion_notify_event', self.parent.show_popup)
+        self.figure.canvas.mpl_connect('motion_notify_event', self.mouse_motion)
         # self.figure.canvas.mpl_connect('figure_enter_event', self.parent.show_popup)
         self.figure.canvas.mpl_connect('figure_leave_event', self.parent.mouse_left)
 
@@ -29,6 +29,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.bars = []
         self.ax = None
         self.annotations = []
+        self.states = []
         # self.plot_data = None
 
         self.layout = QtWidgets.QVBoxLayout()
@@ -36,6 +37,21 @@ class PlotWidget(QtWidgets.QWidget):
         self.layout.addWidget(self.canvas)
 
         self.setLayout(self.layout)
+
+    def mouse_motion(self, event):
+
+        if event.inaxes == self.ax:
+
+            for bar, annot in zip(self.bars, self.annotations):
+                cont, ind = bar.patches[0].contains(event)
+
+
+                if cont:
+                    annot.set_state(True)
+
+                else:
+                    annot.set_state(False)
+
 
     def plot(self, plot_data):
 
@@ -55,6 +71,7 @@ class PlotWidget(QtWidgets.QWidget):
 
             annot = InfoWidget(label=str(round(plot_data["values"][i], 2)))
             self.annotations.append(annot)
+            self.states.append(False)
 
             # self.annotations.append(self.get_annotation(key=i))
 

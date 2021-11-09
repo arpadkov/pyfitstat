@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Sep  5 20:19:40 2021
-
-@author: 95arp
-"""
+from pyfitstat.model.project_model import ViewType, ActivityType, ActivityInfo
 
 import json
 import datetime
@@ -57,10 +52,10 @@ class Activity:
     @property
     def act_type(self):
 
-        if 'running' in self._type or 'other' in self._type:
-            return 'Running'
+        if 'running' in self._type or 'other' in self._type or 'walking' in self._type:
+            return ActivityType.Running
         else:
-            return self._type.capitalize()
+            return ActivityType[self._type.capitalize()]
 
     @property
     def duration(self):
@@ -78,18 +73,20 @@ class Activity:
     def day(self):
         return int(self.date.day)
 
-    @property
-    def data(self):
-        return {
-            "distance": self.distance,
-            "elevation_gain": self.elevation_gain,
-            "elevation_loss": self.elevation_loss,
+    def data(self, info):
+
+        activity_data = {
+            ActivityInfo.Distance: self.distance,
+            ActivityInfo.ElevationGain: self.elevation_gain,
+            ActivityInfo.ElevationLoss: self.elevation_loss,
             "max_elevation": self.max_elevation,
             "min_elevation": self.min_elevation,
             "type": self.act_type,
             "date": self.date,
-            "duration": self.duration
+            ActivityInfo.Duration: self.duration
         }
+
+        return activity_data.get(info)
 
     def __lt__(self, other):
         return self.date < other.date

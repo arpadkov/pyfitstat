@@ -1,27 +1,16 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Sep  5 20:24:39 2021
-
-@author: 95arp
-"""
-import json
-import getpass
-
-from garminexport import incremental_backup
-from activity import Activity
-from activity_sorter import ActivitySorter
-from main_window import MainWindow
+from pyfitstat.model.activity import Activity
+from pyfitstat.model.project_model import ActivityModel
+from pyfitstat.gui.main_window import MainWindow
 
 from PyQt5 import QtWidgets
+from garminexport.incremental_backup import incremental_backup
 
 import os
 import sys
-import datetime
 import logging
+import json
 
 logging.basicConfig(level='ERROR')
-
-
 
 
 class FitnessApp:
@@ -33,25 +22,7 @@ class FitnessApp:
         self._sync = sync
         self._wd = wd
 
-        self.activities = []
-        # # self.current_activities = []
-        #
-        # self.view_types = ['All', 'Year', 'Month']
-        # self.view_type = self.view_types[0]
-        #
-        # self.act_types = ['Running', 'Cycling', 'Hiking']
-        # self.act_type = self.act_types[0]
-        #
-        # self.act_info = 'distance'
-        #
-        # self.year = datetime.date.today().year
-        # self.month = datetime.date.today().month
-
-        self.main_window = None
-
         self.on_start()
-
-        # self.sorter = ActivitySorter(self.activities, self.view_type, self.act_type, self.act_info, self.year, self.month)
 
     def on_start(self):
 
@@ -61,8 +32,6 @@ class FitnessApp:
 
         if self._sync:
             self.sync_data()
-
-        self.create_activities()
 
     def get_user_data(self):
 
@@ -109,11 +78,11 @@ class FitnessApp:
 
     def open_window(self):
 
+        model = ActivityModel(self.create_activities())
+
         app = QtWidgets.QApplication(sys.argv)
-        self.main_window = MainWindow(self.activities)
+        self.main_window = MainWindow(model)
         self.main_window.show()
-        # setattr(self.main_window, 'activities', self.activities)
-        self.main_window.plot()
         sys.exit(app.exec_())
 
     def check_backup_dir(self):
@@ -125,16 +94,9 @@ class FitnessApp:
 
         self._wd = backup_dir
 
-        # if self._wd is None:
-        #     cwd = os.getcwd()
-        #
-        #     backup_dir = os.path.join(cwd, self.username)
-        #     self._wd = backup_dir
-
-
     def sync_data(self):
 
-        incremental_backup.incremental_backup(
+        incremental_backup(
             username=self.username,
             password=self.password,
             backup_dir=self._wd,
@@ -145,29 +107,23 @@ class FitnessApp:
 
     def create_activities(self):
 
+        acts = []
+
         for activity_name in os.listdir(self._wd):
             if '.json' in activity_name:
 
                 try:
                     activity = Activity.read_from_json(os.path.join(self._wd, activity_name))
-                    self.activities.append(activity)
+                    acts.append(activity)
                 except Exception as ex:
                     logging.warning(f'Activity {activity_name} is corrupted: {ex}')
 
-    # def _on_data_change(self):
-    #     self.sorter = ActivitySorter(self.activities, self.view_type, self.act_type)
-    #     self.refresh_current_activities()
-    #     self.main_window.plot(plot_data=self.sorter.create_plot_data())
-
-    # def refresh_current_activities(self):
-    #     self.current_activities = self.sorter.get_activities(self.year, self.month)
-
+        return acts
 
 
 def main():
-    fitness_app = FitnessApp(sync=True)
+    fitness_app = FitnessApp(sync=False)
     fitness_app.open_window()
-
 
 
 if __name__ == "__main__":

@@ -1,7 +1,4 @@
-from garminexport import incremental_backup
-from activity import Activity
-
-import datetime
+from pyfitstat.model.activity import Activity
 
 import logging
 import datetime
