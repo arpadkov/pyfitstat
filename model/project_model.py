@@ -4,6 +4,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 from enum import Enum
 import datetime
+import calendar
 import monthdelta
 
 
@@ -64,21 +65,30 @@ class ActivityModel:
         }
 
         return plots.get(self.view_type)(
-            self.activities,
-            self.view_type,
-            self.act_type,
-            self.act_info,
-            self.year,
-            self.month
+            activities=self.activities,
+            first_year=self.first_year(),
+            last_year=self.last_year(),
+            view_type=self.view_type,
+            act_type=self.act_type,
+            act_info=self.act_info,
+            year=self.year,
+            month=self.month
         )
 
-    @property
-    def last_year(self):
-        return self.activities[-1].date.year
+    def filter_activities(self):
+        filtered = []
+        for act in self.activities:
+            if act.act_type == self.act_type:
+                filtered.append(act)
+        return filtered
 
-    @property
+    def last_year(self):
+        if len(self.filter_activities()):
+            return self.filter_activities()[-1].date.year
+
     def first_year(self):
-        return self.activities[0].date.year
+        if len(self.filter_activities()):
+            return self.filter_activities()[0].date.year
 
     @property
     def last_month(self):
@@ -110,12 +120,27 @@ class ActivityModel:
             self.year = date.year
             self.month = date.month
 
+    def max_date(self):
+
+        max_date = None
+        for act in self.activities:
+            if act.act_type == self.act_type:
+
+                act_year = act.date.year
+                act_month = act.date.month
+
+                max_date = datetime.date(act_year, act_month, calendar.monthrange(act_year, act_month)[1])
+
+        return max_date if max_date else None
+
+    def min_date(self):
+
+        for act in self.activities:
+            if act.act_type == self.act_type:
+                return datetime.date(act.date.year, act.date.month, 1)
+
     def date_is_valid(self, date: datetime.date):
-
-        max_date = datetime.date(self.last_year, self.last_month, 28)
-        min_date = datetime.date(self.first_year, self.first_month, 1)
-
-        return True if min_date < date < max_date else False
+        return True if self.min_date() < date < self.max_date() else False
 
     def plot_clicked(self, num):
 
@@ -132,5 +157,8 @@ class ActivityModel:
 
     def __setattr__(self, key, value):
         object.__setattr__(self, key, value)
+
+        if key == 'act_type':
+            self.view_type = ViewType.All
 
         self.message_obj.emit_selection_change()

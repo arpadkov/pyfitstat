@@ -7,9 +7,12 @@ import calendar
 
 class PlotData:
 
-    def __init__(self, activities, view_type, act_type, act_info, year, month):
+    def __init__(self, activities, first_year, last_year, view_type, act_type, act_info, year, month):
 
         self.activities = activities
+
+        self.first_year = first_year
+        self.last_year = last_year
 
         self.view_type = view_type
         self.act_type = act_type
@@ -19,13 +22,14 @@ class PlotData:
         self.month = month
 
         self.create_title()
-        self.create_labels()
-        self.create_values()
+        if self.first_year and self.last_year:
+            self.create_labels()
+            self.create_values()
 
-        # self.create_annotations()
+            self.create_annotations()
 
     def act_years(self):
-        return [i for i in range(self.activities[0].year, self.activities[-1].year + 1)]
+        return [i for i in range(self.first_year, self.last_year + 1)]
 
     @staticmethod
     def act_months():

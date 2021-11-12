@@ -2,10 +2,14 @@ from pyfitstat.gui.GUIPlotWidget import PlotWidget
 from pyfitstat.gui.GUICalendarSelection import CalendarSelector
 from pyfitstat.gui.GUIInfoSelection import InfoSelector
 
-from PyQt5 import QtWidgets
+from pyfitstat.model.project_model import ViewType
+
+from PyQt5 import QtWidgets, QtCore
 
 
 class MainWindow(QtWidgets.QMainWindow):
+
+    plot_position_changed = QtCore.pyqtSignal()
 
     def __init__(self, model, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -23,6 +27,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.info_selection = InfoSelector(parent=self)
 
         self.model.message_obj.selection_changed.connect(self.plot_widget.plot)
+        self.plot_position_changed.connect(self.plot_widget.move_annotations)
 
         layout.addWidget(self.calendar_selection)
         layout.addWidget(self.plot_widget)
@@ -32,13 +37,18 @@ class MainWindow(QtWidgets.QMainWindow):
         window.setLayout(layout)
         self.setCentralWidget(window)
 
-        self.plot_widget.plot()
+        # self.plot_widget.plot()
+
+    # def plot_widget_pos(self):
+    #     return self.plot_widget.mapToGlobal(QtCore.QPoint(0, 0))
+
+    def resizeEvent(self, event):
+        self.plot_position_changed.emit()
+
+    def moveEvent(self, event):
+        self.plot_position_changed.emit()
 
     def keyPressEvent(self, event) -> None:
         print(event.key())
 
-    def mouse_left(self, event):
 
-        for annot in self.plot_widget.annotations:
-            annot.hide()
-            self.plot_widget.canvas.draw()

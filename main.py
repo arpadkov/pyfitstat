@@ -83,6 +83,7 @@ class FitnessApp:
         app = QtWidgets.QApplication(sys.argv)
         self.main_window = MainWindow(model)
         self.main_window.show()
+        self.main_window.plot_widget.plot()
         sys.exit(app.exec_())
 
     def check_backup_dir(self):
