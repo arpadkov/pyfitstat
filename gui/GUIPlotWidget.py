@@ -16,7 +16,7 @@ class PlotWidget(QtWidgets.QWidget):
 
         self.parent = parent
 
-        self.setMinimumSize(500, 500)
+        self.setMinimumSize(800, 500)
 
         self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
@@ -48,6 +48,7 @@ class PlotWidget(QtWidgets.QWidget):
 
         self.figure.clear()
         self.bars = []
+        self.vlines = []
         self.ax = None
 
         self.ax = self.figure.add_subplot(111)
@@ -116,20 +117,21 @@ class PlotWidget(QtWidgets.QWidget):
 
     def move_annotations(self):
 
-        print(f'plot_top_left: {self.parent.plot_widget.mapToGlobal(QtCore.QPoint(0, 0))}')
-        print(f'plot_size: {self.size()}')
+        print(f'plot_top_left: {self.canvas.mapToGlobal(QtCore.QPoint(0, 0))}')
+        # print(f'plot_size: {self.size()}')
 
         num = 0
         for annot, bar in zip(self.annotations, self.bars):
             self.move_annotation(annot, bar, num)
             num += 1
 
+    """
     def move_annotation(self, annot, bar, num):
 
         # print('=====================================')
         # print(f'Annotation - {num}')
 
-        plot_top_left = self.parent.plot_widget.mapToGlobal(QtCore.QPoint(0, 0))
+        plot_top_left = self.canvas_top_left
         # plot_top_left = self.parent.plot_widget_pos()
         plot_size = self.size()
 
@@ -179,6 +181,72 @@ class PlotWidget(QtWidgets.QWidget):
         annot_y = plot_center_pix + plot_top_left.y()
 
         annot.move(rect_center_x_pix, annot_y)
+    """
+
+    def move_annotation(self, annot, bar, num):
+
+        # coords of center of rectangle in axes
+        rect_xy = self.bars[num].patches[0].get_xy()
+        rect_center_x_ax = rect_xy[0] + self.bars[num].patches[0].get_width() / 2
+        rect_center_y_ax = rect_xy[1] + self.bars[num].patches[0].get_height() / 2
+
+        # center of rectangle in canvas
+        rect_center_x_canv = self.transform_fig_to_ax_x(rect_center_x_ax)
+        rect_center_y_canv = self.transform_fig_to_ax_y(rect_center_y_ax)
+
+        # center of rectangle in desktop in pixels
+        center_x_pix = self.transform_ax_to_pix_x(rect_center_x_canv)
+        center_y_pix = self.transform_ax_to_pix_y(rect_center_y_canv)
+
+        # plot_center_y_ax = 0.5
+        plot_center_y_canv = 0.5
+        plot_center_y_pix = self.transform_ax_to_pix_y(plot_center_y_canv)
+
+        annot_width = annot.size().width()
+
+        annot.move(center_x_pix - annot_width/2, plot_center_y_pix)
+
+    @property
+    def canvas_top_left(self):
+        return self.canvas.mapToGlobal(QtCore.QPoint(0, 0))
+
+    @property
+    def fig_bbox(self):
+        return self.ax.get_position()
+
+    def transform_ax_to_pix_x(self, x):
+        return self.canvas.size().width() * x + self.canvas_top_left.x()
+
+    def transform_ax_to_pix_y(self, y):
+        return self.canvas.size().height() * (1 - y) + self.canvas_top_left.y()
+
+    def transform_fig_to_ax_x(self, x):
+
+        coord_delta = x - self.ax.get_xlim()[0]
+        ax_length = (self.ax.get_xlim()[1] - self.ax.get_xlim()[0])
+
+        # coords in ax as fraction of axis length
+        bar_coord_in_ax = coord_delta / ax_length
+
+        # length of axes as in figure length
+        ax_length = self.fig_bbox.x1 - self.fig_bbox.x0
+
+        return self.fig_bbox.x0 + bar_coord_in_ax * ax_length
+
+    def transform_fig_to_ax_y(self, y):
+
+        coord_delta = y - self.ax.get_ylim()[0]
+        ax_length = (self.ax.get_ylim()[1] - self.ax.get_ylim()[0])
+
+        # coords in ax as fraction of axis length
+        bar_coord_in_ax = coord_delta / ax_length
+
+        # length of axes as in figure length
+        ax_length = self.fig_bbox.y1 - self.fig_bbox.y0
+
+        return self.fig_bbox.y0 + bar_coord_in_ax * ax_length
+
+
 
     def artist_clicked(self, event):
         self.plot_clicked.emit(event.artist.get_gid())

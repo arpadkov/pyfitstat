@@ -18,7 +18,7 @@ class InfoWidget(QtWidgets.QWidget):
         self.layout = QtWidgets.QVBoxLayout()
 
         # self.setGeometry(100, 100, 100, 100)
-        # self.setFixedSize(100, 100)
+        self.setFixedSize(100, 70)
 
         # self.label = QtWidgets.QLabel(label)
         # self.layout.addWidget(self.label)
