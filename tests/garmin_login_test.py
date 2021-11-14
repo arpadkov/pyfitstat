@@ -1,5 +1,7 @@
 from pyfitstat.model.activity import Activity
 
+from garminexport.incremental_backup import incremental_backup
+
 import logging
 import datetime
 import os
@@ -17,12 +19,14 @@ if not os.path.exists(backup_dir):
     os.makedirs(backup_dir)
 
 
-# incremental_backup.incremental_backup(username=username,
-#                                     password=password,
-#                                     backup_dir = os.path.join(cwd, username),
-#                                     export_formats = ['json_summary'],
-#                                     ignore_errors = False,
-#                                     max_retries = 7)
+incremental_backup(
+            username=username,
+            password=password,
+            backup_dir=os.path.join(cwd, username),
+            export_formats=['json_summary'],
+            ignore_errors=False,
+            max_retries=7
+            )
 
 activities = []
 for activity_name in os.listdir(backup_dir):

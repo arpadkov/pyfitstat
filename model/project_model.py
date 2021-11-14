@@ -1,33 +1,18 @@
 from pyfitstat.model.plot_data import PlotData, AllPlot, YearPlot, MonthPlot
+from pyfitstat.model.activity import ViewType, ActivityType, ActivityInfo
+from pyfitstat.model.activity import Activity
+from pyfitstat.worker import Worker
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
-from enum import Enum
+
+import os
+import logging
 import datetime
 import calendar
 import monthdelta
 
-
-class ViewType(Enum):
-
-    All = 1
-    Year = 2
-    Month = 3
-
-
-class ActivityType(Enum):
-
-    Running = 1
-    Cycling = 2
-    Hiking = 3
-
-
-class ActivityInfo(Enum):
-
-    Distance = 1
-    Duration = 2
-    ElevationGain = 3
-    ElevationLoss = 4
+logger = logging.getLogger('pyfitstat')
 
 
 class MessageObject(QObject):
@@ -43,8 +28,16 @@ class MessageObject(QObject):
 
 class ActivityModel:
 
-    def __init__(self, activities):
+    def __init__(self, username, password, wd, activities=[]):
+
         self.message_obj = MessageObject()
+
+        self.username = username
+        self.password = password
+        self.wd = wd
+
+
+        self.thread = QThread()
 
         self.activities = activities
 
@@ -74,6 +67,30 @@ class ActivityModel:
             year=self.year,
             month=self.month
         )
+
+    def sync_activities(self):
+
+        self.synchronizer = Worker(self.username, self.password, self.wd)
+        self.synchronizer.moveToThread(self.thread)
+        self.thread.started.connect(self.synchronizer.run)
+        self.synchronizer.finished.connect(self.create_activities)
+        self.thread.start()
+
+    def create_activities(self):
+
+        for activity_name in os.listdir(self.wd):
+            if '.json' in activity_name:
+                activity = Activity.read_from_json(os.path.join(self.wd, activity_name))
+                if activity:
+                    self.activities.append(activity)
+
+                # try:
+                #     activity = Activity.read_from_json(os.path.join(self.wd, activity_name))
+                #     self.activities.append(activity)
+                # except Exception as ex:
+                #     logger.warning(f'Activity {activity_name} is corrupted: {ex}')
+
+        self.message_obj.emit_selection_change()
 
     def filter_activities(self):
         filtered = []
@@ -149,6 +166,7 @@ class ActivityModel:
             self.view_type = ViewType.Year
 
         elif self.view_type is ViewType.Year:
+            self.plot_data
             self.month = num + 1
             self.view_type = ViewType.Month
 

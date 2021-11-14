@@ -1,5 +1,5 @@
 from pyfitstat.model.sorter import ActivitySorter
-from pyfitstat.gui.GUIInfoboxWidget import InfoWidget
+from pyfitstat.model.activity import ViewType, ActivityType, ActivityInfo
 
 import datetime
 import calendar
@@ -21,12 +21,23 @@ class PlotData:
         self.year = year
         self.month = month
 
-        self.create_title()
-        if self.first_year and self.last_year:
-            self.create_labels()
-            self.create_values()
+        try:
+            self.create_title()
+            if self.first_year and self.last_year:
+                self.create_labels()
+                self.create_values()
 
-            self.create_annotations()
+        except Exception as ex:
+            print(ex)
+
+    def create_title(self):
+        raise NotImplementedError
+
+    def create_labels(self):
+        raise NotImplementedError
+
+    def create_values(self):
+        raise NotImplementedError
 
     def act_years(self):
         return [i for i in range(self.first_year, self.last_year + 1)]
@@ -50,17 +61,20 @@ class AllPlot(PlotData):
     def create_values(self):
 
         self.values = []
+        self.summaries = []
+
         for year in self.act_years():
             year_sorter = ActivitySorter(self.activities, self.act_type, year)
             year_acts = year_sorter.get_activities()
+
+            summary_title = f'{year}'
             self.values.append(sum([act.data(self.act_info) for act in year_acts]))
+            self.summaries.append(ActivityListSummary(summary_title, year_acts))
 
-    def create_annotations(self):
 
-        self.annotations = []
-        for value in self.values:
-            info_widget = InfoWidget(label=str(value))
-            self.annotations.append(info_widget)
+
+
+
 
 
 class YearPlot(PlotData):
@@ -77,17 +91,15 @@ class YearPlot(PlotData):
     def create_values(self):
 
         self.values = []
+        self.summaries = []
+
         for month in range(len(self.act_months())):
             month_sorter = ActivitySorter(self.activities, self.act_type, self.year, month+1)
             month_acts = month_sorter.get_activities()
             self.values.append(sum([act.data(self.act_info) for act in month_acts]))
 
-    def create_annotations(self):
-
-        self.annotations = []
-        for value in self.values:
-            info_widget = InfoWidget(label=str(value))
-            self.annotations.append(info_widget)
+            summary_title = f'{self.act_months()[month]}'
+            self.summaries.append(ActivityListSummary(summary_title, month_acts))
 
 
 class MonthPlot(PlotData):
@@ -105,6 +117,7 @@ class MonthPlot(PlotData):
     def create_values(self):
 
         self.values = [0] * len(self.labels)
+        self.summaries = [None] * len(self.labels)
 
         month_sorter = ActivitySorter(self.activities, self.act_type, self.year, self.month)
         month_acts = month_sorter.get_activities()
@@ -118,10 +131,33 @@ class MonthPlot(PlotData):
                     day_acts.append(act)
 
             self.values[day-1] = sum([act.data(self.act_info) for act in day_acts])
+            if len(day_acts):
+                self.summaries[day-1] = day_acts[0]
+                # print(day)
+                # print(day_acts)
 
-    def create_annotations(self):
 
-        self.annotations = []
-        for value in self.values:
-            info_widget = InfoWidget(label=str(value))
-            self.annotations.append(info_widget)
+class ActivityListSummary:
+
+    def __init__(self, title, activities):
+
+        self.title = title
+        self.activities = activities
+
+    @property
+    def distance(self):
+        return sum([act.data(ActivityInfo.Distance) for act in self.activities])
+
+    @property
+    def duration(self):
+        return sum([act.data(ActivityInfo.Duration) for act in self.activities])
+
+    @property
+    def elevation_gain(self):
+        return sum([act.data(ActivityInfo.ElevationGain) for act in self.activities])
+
+    @property
+    def elevation_loss(self):
+        return sum([act.data(ActivityInfo.ElevationLoss) for act in self.activities])
+
+

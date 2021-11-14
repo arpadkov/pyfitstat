@@ -43,7 +43,31 @@ class TypeSelector(QtWidgets.QComboBox):
         for name in self.names:
             self.addItem(name)
 
-        self.setFixedSize(100, 30)
+        self.setFixedSize(180, 50)
+
+        self.setEditable(True)
+        line_edit = self.lineEdit()
+        line_edit.setAlignment(QtCore.Qt.AlignCenter)
+        line_edit.setReadOnly(True)
+
+        self.font = QtGui.QFont()
+        self.font.setBold(True)
+        self.font.setPointSize(15)
+        self.setFont(self.font)
+
+        self.setStyleSheet(
+            "QComboBox"
+                "{"
+                # "border - style: solid;"
+                # "border-width:3px;"
+                # "border - color: rgb(0, 93, 168);"
+                # "border-radius:20px;"
+                # "background: transparent;"
+                "}"
+            # "QComboBox::down-arrow"
+            #     "{width:100px;"
+            #     "height:14px;}"
+        )
 
         self.currentIndexChanged.connect(self.index_changed)
         self.model.message_obj.selection_changed.connect(self.value_changed)

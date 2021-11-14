@@ -2,15 +2,17 @@ from pyfitstat.model.activity import Activity
 from pyfitstat.model.project_model import ActivityModel
 from pyfitstat.gui.main_window import MainWindow
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from garminexport.incremental_backup import incremental_backup
 
 import os
 import sys
 import logging
 import json
+import time
 
-logging.basicConfig(level='ERROR')
+
+logging.basicConfig(level='INFO')
 
 
 class FitnessApp:
@@ -22,7 +24,8 @@ class FitnessApp:
         self._sync = sync
         self._wd = wd
 
-        self.on_start()
+
+
 
     def on_start(self):
 
@@ -30,8 +33,10 @@ class FitnessApp:
 
         self.check_backup_dir()
 
-        if self._sync:
-            self.sync_data()
+
+
+        # if self._sync:
+        #     self.sync_data()
 
     def get_user_data(self):
 
@@ -78,12 +83,27 @@ class FitnessApp:
 
     def open_window(self):
 
-        model = ActivityModel(self.create_activities())
-
+        # model = ActivityModel(self.create_activities())
+        self.on_start()
         app = QtWidgets.QApplication(sys.argv)
-        self.main_window = MainWindow(model)
-        self.main_window.show()
-        self.main_window.plot_widget.plot()
+        self.main_window = MainWindow(ActivityModel(username=self.username, password=self.password, wd=self._wd))
+        # self.main_window.show()
+
+        # self.main_window.model.sync_activities()
+        # self.main_window.model.create_activities()
+
+        if self._sync:
+            self.main_window.model.sync_activities()
+
+        else:
+            self.main_window.model.create_activities()
+
+
+        #
+        # self.main_window.update_model(ActivityModel(self.create_activities()))
+        #
+        # self.main_window.plot_widget.plot()
+
         sys.exit(app.exec_())
 
     def check_backup_dir(self):
@@ -95,35 +115,34 @@ class FitnessApp:
 
         self._wd = backup_dir
 
-    def sync_data(self):
+    # def sync_data(self):
+    #
+    #     incremental_backup(
+    #         username=self.username,
+    #         password=self.password,
+    #         backup_dir=self._wd,
+    #         export_formats=['json_summary'],
+    #         ignore_errors=False,
+    #         max_retries=7
+    #     )
 
-        incremental_backup(
-            username=self.username,
-            password=self.password,
-            backup_dir=self._wd,
-            export_formats=['json_summary'],
-            ignore_errors=False,
-            max_retries=7
-        )
-
-    def create_activities(self):
-
-        acts = []
-
-        for activity_name in os.listdir(self._wd):
-            if '.json' in activity_name:
-
-                try:
-                    activity = Activity.read_from_json(os.path.join(self._wd, activity_name))
-                    acts.append(activity)
-                except Exception as ex:
-                    logging.warning(f'Activity {activity_name} is corrupted: {ex}')
-
-        return acts
-
+    # def create_activities(self):
+    #
+    #     acts = []
+    #
+    #     for activity_name in os.listdir(self._wd):
+    #         if '.json' in activity_name:
+    #
+    #             try:
+    #                 activity = Activity.read_from_json(os.path.join(self._wd, activity_name))
+    #                 acts.append(activity)
+    #             except Exception as ex:
+    #                 logging.warning(f'Activity {activity_name} is corrupted: {ex}')
+    #
+    #     return acts
 
 def main():
-    fitness_app = FitnessApp(sync=False)
+    fitness_app = FitnessApp(sync=True)
     fitness_app.open_window()
 
 

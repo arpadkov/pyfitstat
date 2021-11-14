@@ -1,7 +1,30 @@
-from pyfitstat.model.project_model import ViewType, ActivityType, ActivityInfo
-
+from enum import Enum
 import json
+import logging
 import datetime
+
+logger = logging.getLogger('pyfitstat')
+
+class ViewType(Enum):
+
+    All = 1
+    Year = 2
+    Month = 3
+
+
+class ActivityType(Enum):
+
+    Running = 1
+    Cycling = 2
+    Hiking = 3
+
+
+class ActivityInfo(Enum):
+
+    Distance = 1
+    Duration = 2
+    ElevationGain = 3
+    ElevationLoss = 4
 
 
 class Activity:
@@ -11,7 +34,7 @@ class Activity:
         self.act_id = act_id
         self.raw_data = raw_data
         
-        self.name = raw_data['activityName']
+        self._name = raw_data['activityName']
 
         self._date = raw_data['summaryDTO']['startTimeLocal']
 
@@ -30,11 +53,22 @@ class Activity:
     def read_from_json(cls, filename):
         
         with open(filename, 'r', encoding='utf-8') as file:
-            raw = json.load(file)
+            json_data = json.load(file)
         
-        act_id = raw['activityId']
+        act_id = json_data['activityId']
+        act_date = json_data['summaryDTO']['startTimeLocal'][0:10]
 
-        return cls(act_id, raw)
+        try:
+            return cls(act_id, json_data)
+        except Exception as ex:
+            logger.warning(f'Activity {act_date} is corrupted: {ex}')
+
+    @property
+    def name(self):
+        if self._name:
+            return self._name
+        else:
+            return 'Unnamed activity'
 
     @property
     def date(self):
