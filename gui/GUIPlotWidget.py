@@ -6,6 +6,7 @@ from PyQt5 import QtWidgets, QtCore
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
+import numpy as np
 import gc
 
 
@@ -66,6 +67,9 @@ class PlotWidget(QtWidgets.QWidget):
 
         if hasattr(plot_data, 'values'):
 
+            if plot_data.view_type == ViewType.Month:
+                self.ax.set_xticks([x for x in plot_data.labels])
+
             for i in range(len(plot_data.values)):
 
                 self.vlines.append(plt.axvline(
@@ -86,6 +90,9 @@ class PlotWidget(QtWidgets.QWidget):
                 ))
 
                 self.create_annotation(summary=plot_data.summaries[i], num=i)
+
+        if hasattr(plot_data, 'y_label'):
+            self.ax.set_ylabel(plot_data.y_label, loc='top', rotation=0)
 
         plt.title(plot_data.title)
 

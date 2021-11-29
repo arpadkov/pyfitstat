@@ -86,7 +86,12 @@ class FitnessApp:
         # model = ActivityModel(self.create_activities())
         self.on_start()
         app = QtWidgets.QApplication(sys.argv)
-        self.main_window = MainWindow(ActivityModel(username=self.username, password=self.password, wd=self._wd))
+        self.main_window = MainWindow(ActivityModel(
+            username=self.username,
+            password=self.password,
+            wd=self._wd,
+            activities=[]
+        ))
         # self.main_window.show()
 
         # self.main_window.model.sync_activities()

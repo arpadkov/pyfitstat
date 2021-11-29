@@ -1,0 +1,9 @@
+catch the actual Exceptions
+
+no default mutable arguments ( l=[] )
+
+check type equality with isinstance()
+
+for index, value in enumerate(l)
+
+tuple unpacking

@@ -140,31 +140,37 @@ class ActivityInfobox(InfoWidget):
 
         self.title.setText(self.activity.name)
 
+        self.date = QtWidgets.QLabel('Date:')
+        self.date_value = QtWidgets.QLabel(str(self.activity.date))
+
         self.distance = QtWidgets.QLabel('Distance:')
-        self.distance_value = QtWidgets.QLabel(str(round(self.activity.data(ActivityInfo.Distance) / 1000, 2)))
+        self.distance_value = QtWidgets.QLabel(str(round(self.activity[ActivityInfo.Distance] / 1000, 2)))
         self.distance_unit = QtWidgets.QLabel('km')
 
         self.elevation_gain = QtWidgets.QLabel('Elevation gain:')
-        self.elevation_gain_value = QtWidgets.QLabel(str(round(self.activity.data(ActivityInfo.ElevationGain), 2)))
+        self.elevation_gain_value = QtWidgets.QLabel(str(round(self.activity[ActivityInfo.ElevationGain], 2)))
         self.elevation_gain_unit = QtWidgets.QLabel('m')
 
         self.duration = QtWidgets.QLabel('Duration:')
-        self.duration_value = QtWidgets.QLabel(format_seconds_to_hhmmss(self.activity.data(ActivityInfo.Duration)))
+        self.duration_value = QtWidgets.QLabel(format_seconds_to_hhmmss(self.activity[ActivityInfo.Duration]))
         self.duration_unit = QtWidgets.QLabel('')
 
         self.layout.addWidget(self.title, 0, 0, 1, 3)
 
-        self.layout.addWidget(self.distance, 1, 0)
-        self.layout.addWidget(self.distance_value, 1, 1)
-        self.layout.addWidget(self.distance_unit, 1, 2)
+        self.layout.addWidget(self.date, 1, 0)
+        self.layout.addWidget(self.date_value, 1, 1)
 
-        self.layout.addWidget(self.elevation_gain, 2, 0)
-        self.layout.addWidget(self.elevation_gain_value, 2, 1)
-        self.layout.addWidget(self.elevation_gain_unit, 2, 2)
+        self.layout.addWidget(self.distance, 2, 0)
+        self.layout.addWidget(self.distance_value, 2, 1)
+        self.layout.addWidget(self.distance_unit, 2, 2)
 
-        self.layout.addWidget(self.duration, 3, 0)
-        self.layout.addWidget(self.duration_value, 3, 1)
-        self.layout.addWidget(self.duration_unit, 3, 2)
+        self.layout.addWidget(self.elevation_gain, 3, 0)
+        self.layout.addWidget(self.elevation_gain_value, 3, 1)
+        self.layout.addWidget(self.elevation_gain_unit, 3, 2)
+
+        self.layout.addWidget(self.duration, 4, 0)
+        self.layout.addWidget(self.duration_value, 4, 1)
+        self.layout.addWidget(self.duration_unit, 4, 2)
 
 
 

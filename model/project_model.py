@@ -28,14 +28,13 @@ class MessageObject(QObject):
 
 class ActivityModel:
 
-    def __init__(self, username, password, wd, activities=[]):
+    def __init__(self, username, password, wd, activities):
 
         self.message_obj = MessageObject()
 
         self.username = username
         self.password = password
         self.wd = wd
-
 
         self.thread = QThread()
 

@@ -5,6 +5,7 @@ import datetime
 
 logger = logging.getLogger('pyfitstat')
 
+
 class ViewType(Enum):
 
     All = 1
@@ -18,6 +19,10 @@ class ActivityType(Enum):
     Cycling = 2
     Hiking = 3
 
+    @classmethod
+    def has_member_key(cls, key):
+        return key in cls.__members__
+
 
 class ActivityInfo(Enum):
 
@@ -28,6 +33,79 @@ class ActivityInfo(Enum):
 
 
 class Activity:
+
+    def __init__(self, json_data):
+
+        self._json_data = json_data
+
+    @classmethod
+    def read_from_json(cls, filename):
+
+        with open(filename, 'r', encoding='utf-8') as file:
+            json_data = json.load(file)
+
+        return cls(json_data)
+
+    @property
+    def act_id(self):
+        return self._json_data['activityId']
+
+    @property
+    def name(self):
+        if self._json_data['activityName']:
+            return self._json_data['activityName'].replace('Nicht klassifiziert', '')
+        else:
+            return 'Unnamed activity'
+
+    @property
+    def date(self):
+
+        year, month, day = tuple(self._json_data['summaryDTO']['startTimeLocal'][0:10].split('-'))
+
+        return datetime.date(int(year), int(month), int(day))
+
+    @property
+    def act_type(self):
+
+        act_type_str = self._json_data['activityTypeDTO']['typeKey']
+
+        if ActivityType.has_member_key( act_type_str.capitalize()):
+            return ActivityType[act_type_str.capitalize()]
+        else:
+            return ActivityType.Running
+
+    def distance(self):
+        return float(self._json_data['summaryDTO']['distance'])
+
+    def elevation_gain(self):
+        return float(self._json_data['summaryDTO']['elevationGain'])
+
+    def elevation_loss(self):
+        return float(self._json_data['summaryDTO']['elevationLoss'])
+
+    def duration(self):
+        return float(self._json_data['summaryDTO']['movingDuration'])
+
+    def dataa(self, info: ActivityInfo):
+
+        activity_data = {
+            ActivityInfo.Distance: self.distance,
+            ActivityInfo.ElevationGain: self.elevation_gain,
+            ActivityInfo.ElevationLoss: self.elevation_loss,
+            ActivityInfo.Duration: self.duration
+        }
+
+        try:
+            return activity_data.get(info)()
+        except Exception as ex:
+            logger.warning(f'Activity {self.date} is missing: {ex}')
+            return 0
+
+    def __getitem__(self, key: ActivityInfo):
+        return self.dataa(key)
+
+
+class AActivity:
     
     def __init__(self, act_id, raw_data):
         
@@ -95,17 +173,17 @@ class Activity:
     def duration(self):
         return self._moving_duration
 
-    @property
-    def year(self):
-        return int(self.date.year)
-
-    @property
-    def month(self):
-        return self.date.strftime('%b')
-
-    @property
-    def day(self):
-        return int(self.date.day)
+    # @property
+    # def year(self):
+    #     return int(self.date.year)
+    #
+    # @property
+    # def month(self):
+    #     return self.date.strftime('%b')
+    #
+    # @property
+    # def day(self):
+    #     return int(self.date.day)
 
     def data(self, info):
 

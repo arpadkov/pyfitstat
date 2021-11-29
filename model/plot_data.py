@@ -21,14 +21,11 @@ class PlotData:
         self.year = year
         self.month = month
 
-        try:
-            self.create_title()
-            if self.first_year and self.last_year:
-                self.create_labels()
-                self.create_values()
-
-        except Exception as ex:
-            print(ex)
+        self.create_title()
+        if self.first_year and self.last_year:
+            self.create_labels()
+            self.create_values()
+            self.format_data()
 
     def create_title(self):
         raise NotImplementedError
@@ -38,6 +35,12 @@ class PlotData:
 
     def create_values(self):
         raise NotImplementedError
+
+    def format_data(self):
+
+        if self.act_info == ActivityInfo.Distance:
+            self.values = [x/1000 for x in self.values]
+            self.y_label = 'km'
 
     def act_years(self):
         return [i for i in range(self.first_year, self.last_year + 1)]
@@ -68,7 +71,7 @@ class AllPlot(PlotData):
             year_acts = year_sorter.get_activities()
 
             summary_title = f'{year}'
-            self.values.append(sum([act.data(self.act_info) for act in year_acts]))
+            self.values.append(sum([act[self.act_info] for act in year_acts]))
             self.summaries.append(ActivityListSummary(summary_title, year_acts))
 
 
@@ -96,7 +99,7 @@ class YearPlot(PlotData):
         for month in range(len(self.act_months())):
             month_sorter = ActivitySorter(self.activities, self.act_type, self.year, month+1)
             month_acts = month_sorter.get_activities()
-            self.values.append(sum([act.data(self.act_info) for act in month_acts]))
+            self.values.append(sum([act[self.act_info] for act in month_acts]))
 
             summary_title = f'{self.act_months()[month]}'
             self.summaries.append(ActivityListSummary(summary_title, month_acts))
@@ -130,11 +133,14 @@ class MonthPlot(PlotData):
                 if act.date.day == day:
                     day_acts.append(act)
 
-            self.values[day-1] = sum([act.data(self.act_info) for act in day_acts])
+            self.values[day-1] = sum([act[self.act_info] for act in day_acts])
             if len(day_acts):
-                self.summaries[day-1] = day_acts[0]
-                # print(day)
-                # print(day_acts)
+
+                distances = [act[ActivityInfo.Distance] for act in day_acts]
+                main_distance = max(distances)
+                main_index = distances.index(main_distance)
+
+                self.summaries[day-1] = day_acts[main_index]
 
 
 class ActivityListSummary:
@@ -146,18 +152,18 @@ class ActivityListSummary:
 
     @property
     def distance(self):
-        return sum([act.data(ActivityInfo.Distance) for act in self.activities])
+        return sum([act[ActivityInfo.Distance] for act in self.activities])
 
     @property
     def duration(self):
-        return sum([act.data(ActivityInfo.Duration) for act in self.activities])
+        return sum([act[ActivityInfo.Duration] for act in self.activities])
 
     @property
     def elevation_gain(self):
-        return sum([act.data(ActivityInfo.ElevationGain) for act in self.activities])
+        return sum([act[ActivityInfo.ElevationGain] for act in self.activities])
 
     @property
     def elevation_loss(self):
-        return sum([act.data(ActivityInfo.ElevationLoss) for act in self.activities])
+        return sum([act[ActivityInfo.ElevationLoss] for act in self.activities])
 
 
