@@ -1,3 +1,8 @@
 # pyfitstat
-GUI application to view statistics of fitness activities \
-in development
+Application to synchronize and view statistics of Garmin activities
+
+currently works with:
+- running
+- cycling
+- hiking
+
