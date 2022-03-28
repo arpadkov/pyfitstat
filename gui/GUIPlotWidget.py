@@ -129,7 +129,7 @@ class PlotWidget(QtWidgets.QWidget):
 
     def move_annotations(self):
 
-        for annot in self.annotations:
+        for annot in self.annotations:      # widgets must be shown first to finalize position
             annot.set_state(True)
             annot.set_state(False)
 

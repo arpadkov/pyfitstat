@@ -33,10 +33,10 @@ class InfoWidget(QtWidgets.QWidget):
 
         self.setLayout(self.layout)
 
-        self.move_to()
+        # self.move_to()
 
-    def move_to(self):
-        pass
+    # def move_to(self):
+    #     pass
 
     def set_state(self, state):
 

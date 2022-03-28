@@ -5,12 +5,12 @@ from pyfitstat.worker import Worker
 
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
-
 import os
 import logging
 import datetime
 import calendar
 import monthdelta
+import webbrowser
 
 logger = logging.getLogger('pyfitstat')
 
@@ -170,10 +170,16 @@ class ActivityModel:
             self.view_type = ViewType.Month
 
         elif self.view_type is ViewType.Month:
-            print(num+1)
+            self.open_act_in_browser(self.plot_data.summaries[num].act_id)
+            # print(self.plot_data.summaries[num])
+
+    @staticmethod
+    def open_act_in_browser(act_id):
+        webbrowser.open(f'https://connect.garmin.com/modern/activity/{act_id}')
 
     def __setattr__(self, key, value):
         object.__setattr__(self, key, value)
+        # setattr(self, key, value)
 
         if key == 'act_type':
             self.view_type = ViewType.All
